@@ -1,0 +1,182 @@
+Create Application Using Express:
+==================================
+1. install express globally
+     > npm install -g express-generator
+
+2. create project
+     > express {Name of the project} --no-view
+
+3. install dependencies:
+     > npm install
+
+4. run the app:
+     > npm start
+
+
+Set up Babel Transpiler
+========================
+    1.  npm install --save-dev babel-preset-env
+    2.  npm install --save-dev babel-cli babel-plugin-transform-runtime
+    3.  You have to install Touch CLI, Run below command in CLI(If you don't have touch in your system)
+        > npm install touch-cli -g
+    4.  Create a babelrc file using 
+        > touch .babelrc
+    5.  Include the following code     
+        >   {
+                "presets": [
+                    [
+                        "env",
+                        {
+                            "targets": {
+                                "node": "current"
+                            }
+                        }
+                    ]
+                ],
+                "plugins": [
+                    ["transform-runtime", {
+                        "polyfill": false,
+                        "regenerator": true
+                    }]
+                ]
+
+            }
+    6.  Install rimraf to delete  the dist folder if exist.
+        > npm install --save rimraf
+    7.  Change the "scripts" object in package.json file as below
+        "scripts": {
+            "start": "nodemon ./server.js --exec babel-node",
+            "build": "rimraf dist/ && babel ./ -d dist --ignore node_modules,.babelrc,package.json,package-lock.json,npm-debug.log --copy-files"
+        }
+    8.  The above build command will delete 'dist' folder if exists. And it will transpile all the es6 js files to es5 and will put it under dist folder.
+        > npm run build
+
+
+Set up Database
+===============
+    1.  http://docs.sequelizejs.com/manual/tutorial/migrations.html
+    2.  > npm install --save sequelize         //To install sequelize
+    3.  > npm install --save sequelize-cli       //To install command line interface for sequelize
+    4.  > cd src
+    5.  > npx sequelize-cli init   //To get the models, migrations, seeders, config folders. If it was already there, then we don't need to execute it.
+    6.  http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html
+    7.  Create .sequelizerc configuration file using the following command
+    8.  > cd ..
+	    > touch .sequelizerc
+    9.  Configure your models, migrations, seeders and config folders path in .sequelizerc file as follows
+    10. const path = require('path');
+        module.exports = {
+            'config': path.resolve('./src/config', 'config.json'),
+            'models-path': path.resolve('./src', 'models'),
+            'seeders-path': path.resolve('./src', 'seeders'),
+            'migrations-path': path.resolve('./src', 'migrations')
+        }
+    11. In config.json file, we need to add '"operatorsAliases": false' in order to remove the error - "sequelize deprecated String based operators are now deprecated. Please use Symbol based operators for better security"
+    12. For using postgres as dialect, need to install supporting packages
+        > npm install pg pg-hstore
+
+
+Alter config.json file
+=========================
+    1.  Need to alter the config.json file under ./src/config folder like below
+    2.  {
+            "development": {
+                "username": "postgres",
+                "password": "password",
+                "database": "tiol_development",
+                "host": "127.0.0.1",
+                "dialect": "postgres",
+                "logging": false
+            },
+            "test": {
+                "username": "postgres",
+                "password": "password",
+                "database": "tiol_development",
+                "host": "127.0.0.1",
+                "dialect": "postgres",
+                "logging": false
+            },
+            "production": {
+                "username": "postgres",
+                "password": "password",
+                "database": "tiol_production",
+                "host": "127.0.0.1",
+                "dialect": "postgres",
+                "logging": false
+            }
+        }
+
+Execute command to add model files
+====================================
+1. Role Table:
+    npx sequelize-cli model:generate --name Role --attributes code:string,name:string,status:string
+2. User Table:
+    npx sequelize-cli model:generate --name User --attributes email:string,password:virtual,hashed_password:string,salt:string,verification_code:string,last_login:date,status:string 
+3. UserRole Table:
+    npx sequelize-cli model:generate --name UserRole --attributes user_id:integer,role_id:integer,is_default:boolean,status:string
+4. UserProfile Table:
+    npx sequelize-cli model:generate --name UserProfile --attributes user_id:integer,full_name:string,mobile_number:string,email:string,pan_number:string,status:string
+5. Jury Table:
+    npx sequelize-cli model:generate --name Jury --attributes user_profile_id:integer,description:string,designation:string,file_name:string,mongo_id:string,status:string
+6. Banner Table:
+     npx sequelize-cli model:generate --name Banner --attributes banner_name:string,user_profile_id:integer,attachment_name:string,mongo_id:string,status:string     
+7. Blog Table:
+     npx sequelize-cli model:generate --name Blog --attributes user_profile_id:integer,title:string,blog_creator:string,content:text,file_name:string,mongo_id:string,status:string
+8. Gallery Table:
+     npx sequelize-cli model:generate --name Gallery --attributes user_profile_id:integer,name:string,description:text,status:string
+9. GalleryAttachment Table:
+     npx sequelize-cli model:generate --name GalleryAttachment --attributes gallery_id:integer,attachment_type:string,attachment_name:string,is_image:boolean,mongo_id:string,video_link:string,status:string
+10. MasterCategory Table:	
+     npx sequelize-cli model:generate --name MasterCategory --attributes name:string,code:string,description:text,status:string
+11. MasterSubCategory Table:
+     npx sequelize-cli model:generate --name MasterSubCategory --attributes master_category_id:integer,code:string,name:string,description:text,status:string
+12. SurveyQuestion Table:
+     npx sequelize-cli model:generate --name SurveyQuestion --attributes master_sub_category_id:integer,question:text,weightage:float,is_required:boolean,status:string
+13. SurveyOption Table:
+     npx sequelize-cli model:generate --name SurveyOption --attributes survey_question_id:integer,answer:text,weightage:float,status:string
+14. AwardSeason Table:
+     npx sequelize-cli model:generate --name AwardSeason --attributes event_name:string,description:text,nomination_start_date:date,nomination_end_date:date,voting_start_date:date,voting_end_date:date,event_date:dateonly,status:string
+15. AwardCategory Table:
+     npx sequelize-cli model:generate --name AwardCategory --attributes master_category_ref:integer,award_season_id:integer,code:string,name:string,description:string,status:string
+16. AwardSubCategory Table:
+     npx sequelize-cli model:generate --name AwardSubCategory --attributes master_sub_category_ref:integer,award_season_id:integer,award_category_id:integer,code:string,name:string,description:string,status:string
+17. AwardSurveyQuestion Table:
+     npx sequelize-cli model:generate --name AwardSurveyQuestion --attributes award_sub_category_id:integer,question:text,weightage:float,is_required:boolean,status:string
+18. AwardSurveyOption Table:
+     npx sequelize-cli model:generate --name AwardSurveyOption --attributes award_survey_question_id:integer,answer:text,weightage:float,status:string
+19. NomineeApplication Table:
+     npx sequelize-cli model:generate --name NomineeApplication --attributes award_season_id:integer,user_profile_ref:integer,nominator_ref:integer,award_sub_category_id:integer,nominee_name:string,email:string,nominee_contact_number:string,pan_number:string,company_name:string,state:string,city:string,postal_address:string,pin_code:string,industry_type:string,nominee_business:text,status:string
+20. NomineeApplicationSurvey Table:
+     npx sequelize-cli model:generate --name NomineeApplicationSurvey  --attributes nominee_application_id:integer,award_survey_question_id:integer,award_survey_option_id:integer,status:string
+21. SelectedNominee Table:
+     npx sequelize-cli model:generate --name SelectedNominee --attributes user_profile_id:integer,nominator_ref:integer,nominee_application_id:integer,award_sub_category_id:integer,award_season_id:integer,nominee_name:string,email:string,nominee_contact_number:string,total_weightage:string,total_votes:integer,pan_number:string,company_name:string,state:string,city:string,postal_address:string,pin_code:string,industry_type:string,nominee_business:string,status:string
+22. Vote Table:
+     npx sequelize-cli model:generate --name Vote --attributes  selected_nominee_id:integer,award_sub_category_id:integer,name:string,mobile_number:string,pan_number:string
+23. VoterSurvey Table:
+     npx sequelize-cli model:generate --name VoterSurvey --attributes award_survey_question_id:integer,vote_id:integer,award_survey_option_id:integer,status:string
+24. IndustryType Table: 
+    npx sequelize-cli model:generate --name IndustryType --attributes name:string,code:string,status:string
+
+To run application:
+==================
+
+1. install dependencies if not:
+    > npm install
+
+2. drop database if already exist:
+    > npx sequelize-cli db:drop
+
+3. create database:
+    > npx sequelize-cli db:create
+
+4. migrate database:
+    > npx sequelize-cli db:migrate
+
+5. build application:
+    > npm run build
+
+6. load sample data:
+    > node ./dist/data/loadData.js --command=master --file=./dist/data/TiolData.xlsx
+
+7. start application:
+    > npm start
